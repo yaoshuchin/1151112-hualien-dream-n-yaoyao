@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>花蓮夢N｜生活科技與AI教學實作 雙專題數位典藏庫</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- QRCode.js CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#fdf4ff',
+              100: '#fae8ff',
+              200: '#f5d0fe',
+              300: '#f0abfc',
+              400: '#e879f9',
+              500: '#d946ef',
+              600: '#c026d3',
+              700: '#a21caf',
+              800: '#86198f',
+              900: '#701a75',
+            },
+            lantern: {
+              50: '#fffbeb',
+              100: '#fef3c7',
+              200: '#fde68a',
+              300: '#fcd34d',
+              400: '#fbbf24',
+              500: '#f59e0b',
+              600: '#d97706',
+              700: '#b45309',
+              800: '#92400e',
+              900: '#78350f',
+            },
+            fredcit: {
+              50: '#ecfdf5',
+              100: '#d1fae5',
+              200: '#a7f3d0',
+              300: '#6ee7b7',
+              400: '#34d399',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+              800: '#065f46',
+              900: '#064e3b',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom scrollbars */
+    ::-webkit-scrollbar {
+      width: 7px;
+      height: 7px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(245, 158, 11, 0.4);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(245, 158, 11, 0.8);
+    }
+
+    body {
+      background-color: #0f172a;
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(245, 158, 11, 0.12) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(16, 185, 129, 0.12) 0px, transparent 50%),
+        radial-gradient(at 50% 100%, rgba(99, 102, 241, 0.1) 0px, transparent 50%);
+      background-attachment: fixed;
+    }
+
+    /* Shelf Column in Horizontal Board View */
+    .shelf-column {
+      width: 320px;
+      min-width: 320px;
+      max-height: calc(100vh - 180px);
+    }
+    @media (max-width: 640px) {
+      .shelf-column {
+        width: 86vw;
+        min-width: 86vw;
+      }
+    }
+
+    .glass-nav {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .glass-card {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .glass-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(251, 191, 36, 0.35);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 0 15px rgba(245, 158, 11, 0.15);
+    }
+
+    .shelf-container {
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    /* Line Clamp */
+    .line-clamp-4 {
+      display: -webkit-box;
+      -webkit-line-clamp: 4;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
+    .shake {
+      animation: shake 0.4s ease-in-out;
+    }
+  </style>
+</head>
+<body class="min-h-screen text-slate-100 font-sans antialiased flex flex-col selection:bg-amber-500 selection:text-slate-950">
+
+  <!-- ========================================== -->
+  <!-- 1. GATEKEEPER MODAL (SHA-256 Protected)   -->
+  <!-- ========================================== -->
+  <div id="gatekeeperModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 backdrop-blur-md p-4 transition-opacity">
+    <div class="relative w-full max-w-md p-8 bg-slate-900/95 backdrop-blur-2xl rounded-3xl shadow-2xl border border-slate-700/60 text-center animate-fade-in">
+      <div class="inline-flex items-center justify-center w-20 h-20 mb-5 rounded-2xl bg-gradient-to-tr from-amber-500 via-rose-500 to-emerald-500 text-white shadow-xl shadow-amber-500/20">
+        <i class="fa-solid fa-graduation-cap text-3xl"></i>
+      </div>
+      <h2 class="text-2xl font-black text-white tracking-wide mb-1">花蓮夢N 研習專用教材庫</h2>
+      <p class="text-xs text-amber-400 font-semibold tracking-wider uppercase mb-6">生活科技與AI教學實作 · 完整離線典藏</p>
+
+      <div class="p-3.5 bg-slate-800/80 rounded-xl border border-slate-700/70 text-xs text-slate-300 text-left mb-6 leading-relaxed">
+        <div class="flex items-center gap-2 font-semibold text-slate-200 mb-1">
+          <i class="fa-solid fa-shield-halved text-amber-400"></i>
+          <span>工作坊研習保護</span>
+        </div>
+        請輸入現場研習授權通行碼以啟用全站資源與檔案下載。
+      </div>
+
+      <form id="passForm" onsubmit="event.preventDefault(); verifyPass();" class="space-y-4">
+        <div class="relative">
+          <input 
+            type="password" 
+            id="passInput" 
+            autocomplete="off"
+            placeholder="請輸入研習通行碼" 
+            class="w-full px-5 py-3.5 bg-slate-950/80 text-white placeholder-slate-500 rounded-xl border border-slate-700 focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 text-center text-lg tracking-widest transition-all"
+            required
+          />
+        </div>
+        <p id="passError" class="hidden text-rose-400 text-xs font-medium"></p>
+        <button 
+          type="submit" 
+          class="w-full py-3.5 px-6 rounded-xl font-bold text-slate-950 bg-gradient-to-r from-amber-400 via-amber-300 to-emerald-400 hover:from-amber-300 hover:to-emerald-300 shadow-lg shadow-amber-500/20 hover:shadow-amber-500/30 transition-all transform active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+        >
+          <span>立即驗證進入</span>
+          <i class="fa-solid fa-arrow-right"></i>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- 2. MAIN APP CONTENT CONTAINER              -->
+  <!-- ========================================== -->
+  <div id="appContainer" class="hidden flex-1 flex flex-col min-h-screen">
+
+    <!-- Top Navigation Bar -->
+    <header class="glass-nav sticky top-0 z-40 px-4 sm:px-6 py-3">
+      <div class="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        
+        <!-- Left: Logo & Workshop Info -->
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-emerald-500 flex items-center justify-center text-slate-950 font-black shadow-md shadow-amber-500/20">
+            <i class="fa-solid fa-shapes text-lg"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h1 class="font-extrabold text-base sm:text-lg text-white tracking-wide">花蓮夢N｜生活科技與AI教學實作</h1>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">數位典藏版</span>
+            </div>
+            <p class="text-[11px] text-slate-400">雙專題全卡片完整鏡像 · 42 項實體離線教材全收錄</p>
+          </div>
+        </div>
+
+        <!-- Center: Dual Topic Switcher Tabs -->
+        <div class="flex items-center justify-center bg-slate-900/90 p-1 rounded-2xl border border-slate-700/80 shadow-inner">
+          <button 
+            id="tabLanternBtn"
+            onclick="switchBoard('lantern')" 
+            class="flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold transition-all text-amber-300 bg-amber-500/20 border border-amber-500/30 shadow-sm"
+          >
+            <i class="fa-solid fa-lightbulb"></i>
+            <span>姚老師：小宮燈與生圖</span>
+            <span id="badgeLanternCount" class="px-1.5 py-0.2 rounded-full text-[10px] bg-amber-500/30 text-amber-200">65</span>
+          </button>
+          <button 
+            id="tabFredcitBtn"
+            onclick="switchBoard('fredcit')" 
+            class="flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all text-slate-400 hover:text-white"
+          >
+            <i class="fa-solid fa-microchip"></i>
+            <span>尾翼老師：生活科技AI</span>
+            <span id="badgeFredcitCount" class="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-800 text-slate-300">26</span>
+          </button>
+        </div>
+
+        <!-- Right: View Modes & Action Tools -->
+        <div class="flex items-center gap-2 self-end md:self-auto">
+          <!-- View switcher group -->
+          <div class="flex items-center bg-slate-900/90 p-1 rounded-xl border border-slate-700/80 text-xs">
+            <button 
+              id="viewBoardBtn" 
+              onclick="switchView('board')" 
+              class="px-2.5 py-1 rounded-lg text-amber-400 bg-slate-800 font-bold transition flex items-center gap-1.5"
+              title="看板瀑布流視角（Padlet 原生水平排列）"
+            >
+              <i class="fa-solid fa-columns"></i>
+              <span class="hidden sm:inline">看板</span>
+            </button>
+            <button 
+              id="viewGridBtn" 
+              onclick="switchView('grid')" 
+              class="px-2.5 py-1 rounded-lg text-slate-400 hover:text-white font-medium transition flex items-center gap-1.5"
+              title="總覽網格視角"
+            >
+              <i class="fa-solid fa-grip"></i>
+              <span class="hidden sm:inline">網格</span>
+            </button>
+            <button 
+              id="viewFilesBtn" 
+              onclick="switchView('files')" 
+              class="px-2.5 py-1 rounded-lg text-slate-400 hover:text-white font-medium transition flex items-center gap-1.5"
+              title="本機離線檔案清單"
+            >
+              <i class="fa-solid fa-download"></i>
+              <span class="hidden sm:inline">檔案</span>
+              <span id="navFilesBadge" class="px-1 rounded-full text-[10px] bg-emerald-500/20 text-emerald-300">42</span>
+            </button>
+          </div>
+
+          <!-- Note box drawer button -->
+          <button 
+            onclick="toggleNoteBox()" 
+            class="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-amber-400 hover:text-amber-300 transition text-xs flex items-center gap-1.5"
+            title="開啟備忘筆記盒"
+          >
+            <i class="fa-regular fa-pen-to-square"></i>
+            <span class="hidden lg:inline">筆記</span>
+          </button>
+
+          <!-- QR code modal button -->
+          <button 
+            onclick="openQrModal()" 
+            class="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white transition text-xs"
+            title="顯示手機掃描 QR Code"
+          >
+            <i class="fa-solid fa-qrcode"></i>
+          </button>
+
+          <!-- Lock session button -->
+          <button 
+            onclick="lockApp()" 
+            class="p-2 rounded-xl bg-slate-800/80 hover:bg-rose-950/50 hover:border-rose-500/50 border border-slate-700 text-slate-400 hover:text-rose-400 transition text-xs"
+            title="重新鎖定"
+          >
+            <i class="fa-solid fa-lock"></i>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Sub-Bar: Search & Category Filter Pills -->
+      <div class="max-w-7xl mx-auto mt-2.5 pt-2 border-t border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+        <!-- Live Search Input -->
+        <div class="relative w-full sm:w-80">
+          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+          <input 
+            type="text" 
+            id="searchInput" 
+            oninput="handleSearch(this.value)" 
+            placeholder="搜尋提示詞、教材標題、檔案、關鍵字..." 
+            class="w-full pl-9 pr-8 py-1.5 bg-slate-900/90 text-xs text-white placeholder-slate-500 rounded-xl border border-slate-700/80 focus:outline-none focus:border-amber-400 transition"
+          />
+          <button 
+            id="clearSearchBtn" 
+            onclick="clearSearch()" 
+            class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 text-xs"
+          >
+            <i class="fa-solid fa-circle-xmark"></i>
+          </button>
+        </div>
+
+        <!-- Section Filter Scroll List -->
+        <div id="sectionPills" class="flex-1 flex items-center gap-1.5 overflow-x-auto py-0.5 no-scrollbar text-xs">
+          <!-- Injected via JS -->
+        </div>
+
+        <!-- Stats Counter -->
+        <div id="filterCount" class="text-[11px] text-slate-400 font-mono whitespace-nowrap self-end sm:self-auto">
+          顯示 0 / 0 則卡片
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="flex-1 flex flex-col overflow-hidden relative">
+
+      <!-- View 1: Board Shelf View (Horizontal Scrolling Padlet Columns) -->
+      <div id="boardView" class="flex-1 overflow-x-auto overflow-y-hidden p-4 sm:p-6 flex gap-4 select-none scroll-smooth">
+        <!-- Rendered via JS -->
+      </div>
+
+      <!-- View 2: Responsive Grid View -->
+      <div id="gridView" class="hidden flex-1 overflow-y-auto p-4 sm:p-6 max-w-7xl mx-auto w-full">
+        <div id="gridCardContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <!-- Rendered via JS -->
+        </div>
+      </div>
+
+      <!-- View 3: Downloadable Offline Files Table View -->
+      <div id="filesView" class="hidden flex-1 overflow-y-auto p-4 sm:p-6 max-w-7xl mx-auto w-full">
+        <div class="glass-card rounded-2xl p-6 border border-slate-700/80">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-5 mb-5 border-b border-slate-700/80 gap-3">
+            <div>
+              <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-cloud-arrow-down text-emerald-400"></i>
+                <span>42 項研習本機實體教材庫全清單</span>
+              </h2>
+              <p class="text-xs text-slate-400 mt-0.5">所有教學簡報 PPTX、康軒各年級課本 ZIP、AI小宮燈手作 PDF、展示影片均已完整收錄在本機庫</p>
+            </div>
+            <div class="flex items-center gap-2 text-xs">
+              <span class="px-3 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 font-mono" id="filesTotalSize">總計約 340 MB</span>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-900/80 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
+                <tr>
+                  <th class="py-3 px-3">專題所屬</th>
+                  <th class="py-3 px-3">檔案名稱 / 教材說明</th>
+                  <th class="py-3 px-3">類型</th>
+                  <th class="py-3 px-3">檔案大小</th>
+                  <th class="py-3 px-3">分欄類別</th>
+                  <th class="py-3 px-3 text-right">本機操作</th>
+                </tr>
+              </thead>
+              <tbody id="filesTableBody" class="divide-y divide-slate-800/80 text-slate-200">
+                <!-- Injected via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="glass-nav py-3 px-4 sm:px-6 text-center text-xs text-slate-500 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-2">
+      <div class="flex items-center gap-2 text-slate-400">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span>花蓮場教師專業成長研習專用 · 姚姚老師 & 尾翼老師雙專題</span>
+      </div>
+      <div class="text-[11px] text-slate-500">
+        <span>離線典藏與本地運行支援 · 嚴格採用安全雜湊門禁保護</span>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- ========================================== -->
+  <!-- 3. MODALS & DRAWERS                        -->
+  <!-- ========================================== -->
+
+  <!-- Image Lightbox Modal -->
+  <div id="imageModal" class="fixed inset-0 z-50 hidden bg-slate-950/95 backdrop-blur-xl flex items-center justify-center p-4" onclick="closeImageModal()">
+    <div class="relative max-w-5xl max-h-[92vh] flex flex-col items-center" onclick="event.stopPropagation()">
+      <button onclick="closeImageModal()" class="absolute -top-12 right-0 p-2 text-slate-400 hover:text-white text-xl">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <img id="modalImg" src="" alt="預覽圖片" class="max-h-[80vh] w-auto rounded-2xl shadow-2xl object-contain border border-slate-700/80 mb-3" />
+      <div class="flex items-center gap-3">
+        <p id="modalImgCaption" class="text-xs text-slate-300 font-medium"></p>
+        <a id="modalImgDownload" href="" download class="px-3 py-1 bg-amber-500 text-slate-950 text-xs font-bold rounded-lg hover:bg-amber-400 transition flex items-center gap-1.5">
+          <i class="fa-solid fa-download"></i>
+          <span>下載大圖</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- QR Code Modal -->
+  <div id="qrModal" class="fixed inset-0 z-50 hidden bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4" onclick="closeQrModal()">
+    <div class="relative w-full max-w-sm p-6 bg-slate-900 rounded-3xl border border-slate-700 shadow-2xl text-center" onclick="event.stopPropagation()">
+      <button onclick="closeQrModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+      <div class="w-12 h-12 mx-auto mb-3 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-xl">
+        <i class="fa-solid fa-qrcode"></i>
+      </div>
+      <h3 class="font-bold text-white text-base mb-1" id="qrTitle">手機 / 平板即時掃描</h3>
+      <p class="text-xs text-slate-400 mb-4" id="qrSubtitle">使用行動裝置鏡頭掃描，隨身瀏覽研習資源</p>
+      
+      <div id="qrcodeCanvas" class="flex justify-center p-4 bg-white rounded-2xl shadow-inner mb-4"></div>
+      
+      <p class="text-[11px] text-slate-400 break-all px-2 font-mono" id="qrUrlText"></p>
+    </div>
+  </div>
+
+  <!-- Floating Notes Drawer -->
+  <div id="noteBoxDrawer" class="fixed top-0 right-0 h-full w-80 sm:w-96 z-50 bg-slate-900/95 backdrop-blur-xl border-l border-slate-700 shadow-2xl transform translate-x-full transition-transform duration-300 flex flex-col">
+    <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <i class="fa-solid fa-bookmark text-amber-400"></i>
+        <h3 class="font-bold text-sm text-white">研習備忘筆記盒</h3>
+      </div>
+      <button onclick="toggleNoteBox()" class="text-slate-400 hover:text-white">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <div class="p-4 flex-1 flex flex-col gap-3">
+      <p class="text-xs text-slate-400">研習進行期間可隨時將實用提示詞與重點記錄在此，關閉瀏覽器會自動儲存於本機：</p>
+      <textarea 
+        id="workshopNotes" 
+        oninput="saveNotes(this.value)"
+        placeholder="在此輸入或貼上提示詞筆記..." 
+        class="flex-1 w-full p-3 bg-slate-950 text-xs text-slate-200 placeholder-slate-600 rounded-xl border border-slate-800 focus:outline-none focus:border-amber-400 resize-none font-mono"
+      ></textarea>
+      <div class="flex items-center justify-between text-[11px] text-slate-500">
+        <span id="noteSaveStatus">自動儲存於瀏覽器</span>
+        <button onclick="clearNotes()" class="hover:text-rose-400 transition">清空筆記</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 hidden px-4 py-2.5 rounded-xl bg-slate-800/95 border border-amber-500/50 text-white text-xs font-semibold shadow-2xl shadow-black/60 flex items-center gap-2.5 animate-bounce">
+    <i class="fa-solid fa-circle-check text-emerald-400 text-sm"></i>
+    <span id="toastMsg">提示詞已成功複製至剪貼簿！</span>
+  </div>
+
+  <!-- Data Script -->
+  <script src="padlet_archive_data.js"></script>
+
+  <!-- Main Application Logic -->
+  <script>
+    // Security Hash (SHA-256 for site access validation)
+    const AUTH_HASH = "5cae49b1fea5b5b969cdc931b8338968940c92309aa2339360cdd5c77be4a4ff";
+    const AUTH_KEY = "hualien_dream_yao_verified";
+
+    let currentBoardKey = 'lantern'; // 'lantern' or 'fredcit'
+    let currentView = 'board';       // 'board', 'grid', 'files'
+    let activeFilterSection = 'ALL';
+    let searchQuery = '';
+
+    // Initialize on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      // Check storage
+      if (localStorage.getItem(AUTH_KEY) === 'true') {
+        unlockApp();
+      } else {
+        document.getElementById('gatekeeperModal').classList.remove('hidden');
+        document.getElementById('passInput').focus();
+      }
+      loadNotes();
+    });
+
+    async function verifyPass() {
+      const pass = document.getElementById('passInput').value;
+      const err = document.getElementById('passError');
+      
+      const encoder = new TextEncoder();
+      const data = encoder.encode(pass);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+      if (hashHex === AUTH_HASH) {
+        localStorage.setItem(AUTH_KEY, 'true');
+        err.classList.add('hidden');
+        unlockApp();
+      } else {
+        err.textContent = '通行驗證碼有誤，請確認研習現場代碼。';
+        err.classList.remove('hidden');
+        const box = document.getElementById('passInput');
+        box.classList.add('shake', 'border-rose-500');
+        setTimeout(() => box.classList.remove('shake', 'border-rose-500'), 500);
+      }
+    }
+
+    function unlockApp() {
+      document.getElementById('gatekeeperModal').classList.add('hidden');
+      document.getElementById('appContainer').classList.remove('hidden');
+      initApp();
+    }
+
+    function lockApp() {
+      localStorage.removeItem(AUTH_KEY);
+      location.reload();
+    }
+
+    function initApp() {
+      if (typeof DUAL_PADLET_ARCHIVE === 'undefined') {
+        console.error('Padlet archive data not loaded!');
+        return;
+      }
+      
+      // Update counts
+      const lCount = DUAL_PADLET_ARCHIVE.boards.lantern.posts.length;
+      const fCount = DUAL_PADLET_ARCHIVE.boards.fredcit.posts.length;
+      document.getElementById('badgeLanternCount').textContent = lCount;
+      document.getElementById('badgeFredcitCount').textContent = fCount;
+      
+      renderBoardUI();
+    }
+
+    function switchBoard(key) {
+      currentBoardKey = key;
+      activeFilterSection = 'ALL';
+      searchQuery = '';
+      document.getElementById('searchInput').value = '';
+      document.getElementById('clearSearchBtn').classList.add('hidden');
+
+      // Update Tab Styles
+      const btnL = document.getElementById('tabLanternBtn');
+      const btnF = document.getElementById('tabFredcitBtn');
+
+      if (key === 'lantern') {
+        btnL.className = "flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold transition-all text-amber-300 bg-amber-500/20 border border-amber-500/30 shadow-sm";
+        btnF.className = "flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all text-slate-400 hover:text-white";
+      } else {
+        btnF.className = "flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold transition-all text-emerald-300 bg-emerald-500/20 border border-emerald-500/30 shadow-sm";
+        btnL.className = "flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all text-slate-400 hover:text-white";
+      }
+
+      renderBoardUI();
+    }
+
+    function switchView(view) {
+      currentView = view;
+      ['board', 'grid', 'files'].forEach(v => {
+        const btn = document.getElementById(`view${v.charAt(0).toUpperCase() + v.slice(1)}Btn`);
+        const container = document.getElementById(`${v}View`);
+        if (v === view) {
+          btn.className = "px-2.5 py-1 rounded-lg text-amber-400 bg-slate-800 font-bold transition flex items-center gap-1.5";
+          container.classList.remove('hidden');
+        } else {
+          btn.className = "px-2.5 py-1 rounded-lg text-slate-400 hover:text-white font-medium transition flex items-center gap-1.5";
+          container.classList.add('hidden');
+        }
+      });
+      renderBoardUI();
+    }
+
+    function renderBoardUI() {
+      const boardData = DUAL_PADLET_ARCHIVE.boards[currentBoardKey];
+      if (!boardData) return;
+
+      renderSectionPills(boardData);
+
+      // Filter posts
+      let filtered = boardData.posts.filter(p => {
+        if (activeFilterSection !== 'ALL' && p.section !== activeFilterSection) {
+          return false;
+        }
+        if (searchQuery) {
+          const q = searchQuery.toLowerCase();
+          const matchTitle = (p.title || '').toLowerCase().includes(q);
+          const matchBody = (p.body_plain || '').toLowerCase().includes(q);
+          const matchSec = (p.section || '').toLowerCase().includes(q);
+          const matchFile = (p.file_name || '').toLowerCase().includes(q);
+          if (!matchTitle && !matchBody && !matchSec && !matchFile) return false;
+        }
+        return true;
+      });
+
+      document.getElementById('filterCount').textContent = `顯示 ${filtered.length} / ${boardData.posts.length} 則卡片`;
+
+      if (currentView === 'board') {
+        renderShelfBoard(boardData, filtered);
+      } else if (currentView === 'grid') {
+        renderGridBoard(filtered);
+      } else if (currentView === 'files') {
+        renderFilesTable();
+      }
+    }
+
+    function renderSectionPills(boardData) {
+      const pillsContainer = document.getElementById('sectionPills');
+      let html = `
+        <button 
+          onclick="setSectionFilter('ALL')" 
+          class="px-2.5 py-1 rounded-lg font-medium whitespace-nowrap transition ${activeFilterSection === 'ALL' ? 'bg-amber-500 text-slate-950 font-bold shadow-sm' : 'bg-slate-800/80 text-slate-400 hover:text-white'}"
+        >
+          全部 (${boardData.posts.length})
+        </button>
+      `;
+
+      boardData.sections.forEach(secName => {
+        const count = boardData.posts.filter(p => p.section === secName).length;
+        if (count === 0) return;
+        const isActive = activeFilterSection === secName;
+        html += `
+          <button 
+            onclick="setSectionFilter('${escapeHtml(secName)}')" 
+            class="px-2.5 py-1 rounded-lg font-medium whitespace-nowrap transition ${isActive ? 'bg-amber-500 text-slate-950 font-bold shadow-sm' : 'bg-slate-800/80 text-slate-400 hover:text-white'}"
+          >
+            ${escapeHtml(secName)} (${count})
+          </button>
+        `;
+      });
+
+      pillsContainer.innerHTML = html;
+    }
+
+    function setSectionFilter(sec) {
+      activeFilterSection = sec;
+      renderBoardUI();
+    }
+
+    function handleSearch(val) {
+      searchQuery = val.trim();
+      document.getElementById('clearSearchBtn').classList.toggle('hidden', !searchQuery);
+      renderBoardUI();
+    }
+
+    function clearSearch() {
+      document.getElementById('searchInput').value = '';
+      handleSearch('');
+    }
+
+    // 1. Board View (Padlet horizontal columns)
+    function renderShelfBoard(boardData, filteredPosts) {
+      const boardContainer = document.getElementById('boardView');
+      let html = '';
+
+      boardData.sections.forEach((secName, secIdx) => {
+        const secPosts = filteredPosts.filter(p => p.section === secName);
+        if (activeFilterSection !== 'ALL' && activeFilterSection !== secName) return;
+        if (searchQuery && secPosts.length === 0) return;
+
+        html += `
+          <div class="shelf-column shelf-container flex flex-col rounded-2xl overflow-hidden shadow-lg border border-slate-700/60 flex-shrink-0">
+            <!-- Shelf Header -->
+            <div class="px-4 py-3 bg-slate-900/90 border-b border-slate-700/80 flex items-center justify-between">
+              <div class="flex items-center gap-2 overflow-hidden">
+                <span class="w-2 h-2 rounded-full ${currentBoardKey === 'lantern' ? 'bg-amber-400' : 'bg-emerald-400'}"></span>
+                <h3 class="font-bold text-xs sm:text-sm text-white truncate" title="${escapeHtml(secName)}">${escapeHtml(secName)}</h3>
+              </div>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-slate-800 text-slate-400 border border-slate-700/60">${secPosts.length}</span>
+            </div>
+
+            <!-- Shelf Cards List -->
+            <div class="flex-1 overflow-y-auto p-3 space-y-3.5 no-scrollbar">
+              ${secPosts.length > 0 ? secPosts.map(p => createCardHtml(p)).join('') : `
+                <div class="py-8 text-center text-slate-500 text-xs">
+                  <i class="fa-regular fa-folder-open text-xl mb-1 block opacity-40"></i>
+                  此分欄暫無卡片
+                </div>
+              `}
+            </div>
+          </div>
+        `;
+      });
+
+      boardContainer.innerHTML = html || `
+        <div class="flex-1 flex items-center justify-center text-slate-500 text-sm">
+          沒有符合搜尋條件的卡片
+        </div>
+      `;
+    }
+
+    // 2. Grid View
+    function renderGridBoard(filteredPosts) {
+      const container = document.getElementById('gridCardContainer');
+      if (filteredPosts.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full py-16 text-center text-slate-500 text-sm">
+            沒有符合條件的卡片
+          </div>
+        `;
+        return;
+      }
+      container.innerHTML = filteredPosts.map(p => createCardHtml(p)).join('');
+    }
+
+    // Card Component HTML
+    function createCardHtml(post) {
+      const isLantern = currentBoardKey === 'lantern';
+      const accentBorder = isLantern ? 'hover:border-amber-400/50' : 'hover:border-emerald-400/50';
+
+      // Media preview
+      let mediaPreviewHtml = '';
+      if (post.local_file && post.media_type === 'image') {
+        mediaPreviewHtml = `
+          <div class="relative overflow-hidden rounded-xl mb-3 cursor-pointer group/img" onclick="openImageModal('${post.local_file}', '${escapeHtml(post.title)}')">
+            <img src="${post.local_file}" alt="${escapeHtml(post.title)}" class="w-full h-44 object-cover rounded-xl transition duration-300 group-hover/img:scale-105" loading="lazy" />
+            <div class="absolute inset-0 bg-slate-950/40 opacity-0 group-hover/img:opacity-100 transition flex items-center justify-center text-white text-xs gap-1.5 font-semibold">
+              <i class="fa-solid fa-magnifying-glass-plus"></i>
+              <span>放大檢視</span>
+            </div>
+          </div>
+        `;
+      } else if (post.attachment_url && post.media_type === 'image' && !post.local_file) {
+        mediaPreviewHtml = `
+          <div class="relative overflow-hidden rounded-xl mb-3 cursor-pointer group/img" onclick="openImageModal('${post.attachment_url}', '${escapeHtml(post.title)}')">
+            <img src="${post.attachment_url}" alt="${escapeHtml(post.title)}" class="w-full h-44 object-cover rounded-xl transition duration-300 group-hover/img:scale-105" loading="lazy" />
+            <div class="absolute inset-0 bg-slate-950/40 opacity-0 group-hover/img:opacity-100 transition flex items-center justify-center text-white text-xs gap-1.5 font-semibold">
+              <i class="fa-solid fa-magnifying-glass-plus"></i>
+              <span>放大檢視</span>
+            </div>
+          </div>
+        `;
+      }
+
+      // Local Download / Action Button
+      let actionBtnHtml = '';
+      if (post.local_file) {
+        actionBtnHtml = `
+          <a href="${post.local_file}" download class="flex-1 py-1.5 px-2.5 rounded-lg text-xs font-bold bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 border border-emerald-500/40 transition flex items-center justify-center gap-1.5">
+            <i class="fa-solid fa-download"></i>
+            <span>本機檔案 (${post.file_size || '下載'})</span>
+          </a>
+        `;
+      } else if (post.attachment_url) {
+        let label = '開啟連結';
+        let icon = 'fa-arrow-up-right-from-square';
+        if (post.media_type === 'youtube') { label = '觀看影片'; icon = 'fa-youtube'; }
+        else if (post.media_type === 'canva') { label = 'Canva 簡報'; icon = 'fa-palette'; }
+        else if (post.media_type === 'gemini') { label = 'Gemini 機器人'; icon = 'fa-robot'; }
+        else if (post.media_type === 'google_form') { label = '填寫表單'; icon = 'fa-square-poll-vertical'; }
+
+        actionBtnHtml = `
+          <a href="${post.attachment_url}" target="_blank" rel="noopener noreferrer" class="flex-1 py-1.5 px-2.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 border border-slate-700 transition flex items-center justify-center gap-1.5">
+            <i class="fa-solid ${icon}"></i>
+            <span>${label}</span>
+          </a>
+        `;
+      }
+
+      return `
+        <div class="glass-card rounded-2xl p-4 flex flex-col justify-between ${accentBorder}">
+          <div>
+            <!-- Top Tag & Section -->
+            <div class="flex items-center justify-between gap-2 mb-2">
+              <span class="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-800/90 text-slate-400 border border-slate-700/60 truncate">
+                ${escapeHtml(post.section)}
+              </span>
+              ${post.has_local_file ? `
+                <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                  <i class="fa-solid fa-hard-drive mr-0.5"></i> 離線收錄
+                </span>
+              ` : ''}
+            </div>
+
+            <!-- Title -->
+            <h4 class="font-bold text-sm text-white leading-snug mb-2 group-hover:text-amber-300 transition">
+              ${escapeHtml(post.title)}
+            </h4>
+
+            <!-- Media Preview -->
+            ${mediaPreviewHtml}
+
+            <!-- Body text / Prompt -->
+            ${post.body_plain ? `
+              <div class="bg-slate-950/60 rounded-xl p-2.5 border border-slate-800/80 mb-3">
+                <p class="text-xs text-slate-300 whitespace-pre-line line-clamp-4 leading-relaxed font-sans select-text">
+                  ${escapeHtml(post.body_plain)}
+                </p>
+              </div>
+            ` : ''}
+          </div>
+
+          <!-- Bottom Actions -->
+          <div class="pt-2 border-t border-slate-800/80 flex items-center gap-2 mt-2">
+            <!-- Copy Prompt Button -->
+            <button 
+              onclick="copyCardText(${post.id})" 
+              class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-amber-500/15 text-amber-300 hover:bg-amber-500/25 border border-amber-500/30 transition flex items-center gap-1"
+              title="複製卡片內容與提示詞"
+            >
+              <i class="fa-regular fa-copy"></i>
+              <span>複製</span>
+            </button>
+
+            <!-- Attachment Action -->
+            ${actionBtnHtml}
+
+            <!-- Card QR code -->
+            <button 
+              onclick="openCardQr(${post.id})" 
+              class="p-1.5 rounded-lg text-xs text-slate-400 hover:text-white bg-slate-800/60 hover:bg-slate-700 border border-slate-700/60 transition"
+              title="產生卡片 QR Code"
+            >
+              <i class="fa-solid fa-qrcode"></i>
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    // 3. Files View Table
+    function renderFilesTable() {
+      const tbody = document.getElementById('filesTableBody');
+      const allFiles = [];
+
+      ['lantern', 'fredcit'].forEach(bKey => {
+        const board = DUAL_PADLET_ARCHIVE.boards[bKey];
+        board.posts.forEach(p => {
+          if (p.local_file) {
+            allFiles.push({
+              ...p,
+              board_name: board.board_info.display_name,
+              board_key: bKey
+            });
+          }
+        });
+      });
+
+      // Filter files if search active
+      const filteredFiles = allFiles.filter(f => {
+        if (searchQuery) {
+          const q = searchQuery.toLowerCase();
+          return f.title.toLowerCase().includes(q) || f.file_name.toLowerCase().includes(q) || f.section.toLowerCase().includes(q);
+        }
+        return true;
+      });
+
+      tbody.innerHTML = filteredFiles.map(f => {
+        let typeBadge = 'bg-slate-700 text-slate-300';
+        let typeIcon = 'fa-file';
+        const ext = f.file_ext.toLowerCase();
+
+        if (['pdf'].includes(ext)) {
+          typeBadge = 'bg-rose-500/20 text-rose-300 border border-rose-500/30';
+          typeIcon = 'fa-file-pdf';
+        } else if (['zip', 'rar', '7z'].includes(ext)) {
+          typeBadge = 'bg-amber-500/20 text-amber-300 border border-amber-500/30';
+          typeIcon = 'fa-file-zipper';
+        } else if (['pptx', 'ppt'].includes(ext)) {
+          typeBadge = 'bg-orange-500/20 text-orange-300 border border-orange-500/30';
+          typeIcon = 'fa-file-powerpoint';
+        } else if (['png', 'jpg', 'jpeg'].includes(ext)) {
+          typeBadge = 'bg-blue-500/20 text-blue-300 border border-blue-500/30';
+          typeIcon = 'fa-file-image';
+        } else if (['mov', 'mp4'].includes(ext)) {
+          typeBadge = 'bg-purple-500/20 text-purple-300 border border-purple-500/30';
+          typeIcon = 'fa-file-video';
+        } else if (['docx', 'doc'].includes(ext)) {
+          typeBadge = 'bg-sky-500/20 text-sky-300 border border-sky-500/30';
+          typeIcon = 'fa-file-word';
+        }
+
+        return `
+          <tr class="hover:bg-slate-800/40 transition">
+            <td class="py-3 px-3">
+              <span class="px-2 py-0.5 rounded text-[10px] font-semibold ${f.board_key === 'lantern' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'}">
+                ${f.board_key === 'lantern' ? '姚姚·小宮燈' : '尾翼·生活科技'}
+              </span>
+            </td>
+            <td class="py-3 px-3 font-medium text-white max-w-xs truncate" title="${escapeHtml(f.file_name)}">
+              ${escapeHtml(f.title || f.file_name)}
+            </td>
+            <td class="py-3 px-3">
+              <span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold flex items-center gap-1 w-max ${typeBadge}">
+                <i class="fa-solid ${typeIcon}"></i>
+                <span>${ext || '檔案'}</span>
+              </span>
+            </td>
+            <td class="py-3 px-3 font-mono text-slate-400">
+              ${f.file_size || '未知'}
+            </td>
+            <td class="py-3 px-3 text-slate-400 truncate max-w-[140px]">
+              ${escapeHtml(f.section)}
+            </td>
+            <td class="py-3 px-3 text-right">
+              <a href="${f.local_file}" download class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold bg-emerald-500 text-slate-950 hover:bg-emerald-400 transition shadow-sm">
+                <i class="fa-solid fa-download"></i>
+                <span>下載</span>
+              </a>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // Helper: Copy Text with Toast
+    function copyCardText(id) {
+      let targetPost = null;
+      ['lantern', 'fredcit'].forEach(k => {
+        const found = DUAL_PADLET_ARCHIVE.boards[k].posts.find(p => p.id === id);
+        if (found) targetPost = found;
+      });
+      if (!targetPost) return;
+
+      const text = targetPost.copy_text || targetPost.title;
+      navigator.clipboard.writeText(text).then(() => {
+        showToast('已複製卡片與提示詞至剪貼簿！');
+      }).catch(() => {
+        showToast('複製失敗，請手動圈選文字。');
+      });
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toastMsg').textContent = msg;
+      toast.classList.remove('hidden');
+      setTimeout(() => toast.classList.add('hidden'), 2500);
+    }
+
+    // Modal Image Lightbox
+    function openImageModal(src, caption) {
+      document.getElementById('modalImg').src = src;
+      document.getElementById('modalImgCaption').textContent = caption;
+      document.getElementById('modalImgDownload').href = src;
+      document.getElementById('imageModal').classList.remove('hidden');
+    }
+    function closeImageModal() {
+      document.getElementById('imageModal').classList.add('hidden');
+    }
+
+    // Modal QR Code
+    function openQrModal() {
+      const currentUrl = window.location.href;
+      renderQr(currentUrl, '花蓮夢N 研習平台入口', '手機掃描隨身攜帶，現場免去手動輸入網址');
+    }
+
+    function openCardQr(id) {
+      let targetPost = null;
+      ['lantern', 'fredcit'].forEach(k => {
+        const found = DUAL_PADLET_ARCHIVE.boards[k].posts.find(p => p.id === id);
+        if (found) targetPost = found;
+      });
+      if (!targetPost) return;
+      const targetUrl = targetPost.attachment_url || targetPost.local_file || window.location.href;
+      renderQr(targetUrl, targetPost.title, targetPost.section);
+    }
+
+    function renderQr(url, title, subtitle) {
+      document.getElementById('qrTitle').textContent = title;
+      document.getElementById('qrSubtitle').textContent = subtitle;
+      document.getElementById('qrUrlText').textContent = url;
+      
+      const container = document.getElementById('qrcodeCanvas');
+      container.innerHTML = '';
+      new QRCode(container, {
+        text: url,
+        width: 180,
+        height: 180,
+        colorDark: "#0f172a",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.M
+      });
+
+      document.getElementById('qrModal').classList.remove('hidden');
+    }
+
+    function closeQrModal() {
+      document.getElementById('qrModal').classList.add('hidden');
+    }
+
+    // Notes Box Drawer
+    function toggleNoteBox() {
+      const drawer = document.getElementById('noteBoxDrawer');
+      drawer.classList.toggle('translate-x-full');
+    }
+
+    function saveNotes(val) {
+      localStorage.setItem('hualien_dream_yao_notes', val);
+      const st = document.getElementById('noteSaveStatus');
+      st.textContent = '已儲存！';
+      setTimeout(() => st.textContent = '自動儲存於瀏覽器', 1500);
+    }
+
+    function loadNotes() {
+      const saved = localStorage.getItem('hualien_dream_yao_notes');
+      if (saved) {
+        document.getElementById('workshopNotes').value = saved;
+      }
+    }
+
+    function clearNotes() {
+      if (confirm('確定清空所有研習筆記嗎？')) {
+        document.getElementById('workshopNotes').value = '';
+        localStorage.removeItem('hualien_dream_yao_notes');
+      }
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+  </script>
+</body>
+</html>
